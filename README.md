@@ -1,6 +1,6 @@
 # update-systemd-resolved
 
-[![Build Status](https://travis-ci.org/jonathanio/update-systemd-resolved.svg?branch=features%2Funit-tests)](https://travis-ci.org/jonathanio/update-systemd-resolved)
+**Fork notice:** This fork simply adds kill switch functionality to update-systemd-resolved. Essentially, UFW is used to enable a kill switch on connection. The user is prompted to disable the kill switch when the connection is closed. See lines [138](https://github.com/aghorler/update-systemd-resolved/blob/master/update-systemd-resolved#L138) - 151, and [168](https://github.com/aghorler/update-systemd-resolved/blob/master/update-systemd-resolved#L168) - 184.
 
 This is a helper script designed to integrate OpenVPN with the `systemd-resolved`
 service via DBus instead of trying to override `/etc/resolv.conf`, or manipulate
@@ -18,15 +18,10 @@ All are most welcome.
 
 ## Installation
 
-If you are using a distribution of Linux with access to the Arch User Repository,
-the simplest way to install is by using the
-[openvpn-update-systemd-resolved](https://aur.archlinux.org/packages/openvpn-update-systemd-resolved/)
-AUR package as this will take care of any updates through your package manager.
-
-Alternatively, the package can be manually installed by running the following:
+The package can be manually installed by running the following:
 
 ```
-git clone https://github.com/jonathanio/update-systemd-resolved.git
+git clone https://github.com/aghorler/update-systemd-resolved.git
 cd update-systemd-resolved
 make
 ```
@@ -149,3 +144,5 @@ GPL
 ## Author
 
 Jonathan Wright <jon@than.io>
+
+Modifications by Aaron Horler.

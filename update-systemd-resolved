@@ -134,6 +134,21 @@ up() {
       busctl_call SetLinkDNSSEC 'is' "$if_index" "${dns_sec}" || return $?
     fi
   fi
+
+  # Enable kill switch
+  ufw default deny outgoing
+  ufw default deny incoming
+  ufw allow out on tun0 from any to any
+
+  # Optionally, allow connection to a local host (eg. a NAS)
+  # ufw allow out from any to 192.168.0.100
+
+  # Or to your entire local network (I wouldn't do this)
+  # ufw allow out from any to 192.168.0.0/24
+
+  ufw --force enable
+
+  echo "Kill switch enabled."
 }
 
 down() {
@@ -148,6 +163,24 @@ down() {
     info "Priviledges dropped in the client: Cannot call RevertLink."
   else
     busctl_call RevertLink i "$if_index"
+  fi
+
+  # Prompt to disable kill switch
+  echo "Disable kill switch? (Y/N)"
+  read -t 20 disable_kill_switch
+
+  if [ "$disable_kill_switch" = 'Y' ]; then
+    ufw --force reset
+
+    # Fairly standard default UFW configuration
+    ufw default allow outgoing
+    ufw default deny incoming
+
+    ufw --force enable
+
+    echo "Kill switch disabled."
+  else
+    echo "Kill switch left enabled."
   fi
 }
 
