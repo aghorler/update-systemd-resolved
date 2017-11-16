@@ -64,6 +64,21 @@ down /etc/openvpn/scripts/update-systemd-resolved
 down-pre
 ```
 
+*Note*: The `down` and `down-pre` options here will not work as expected where
+the `openvpn` daemon drops privileges after establishing the connection (i.e.
+when using the `user` and `group` options). This is because only the `root` user
+will have the privileges required to talk to `systemd-resolved.service` over
+DBus. The `openvpn-plugin-down-root.so` plugin does provide support for
+enabling the `down` script to be run as the `root` user, but this has been known
+to be unreliable.
+
+Ultimately this shouldn't affect normal operation as `systemd-resolved.service`
+will remove all settings associated with the link (and therefore naturally
+update `/etc/resolv.conf`, if you have it symlinked) when the TUN or TAP device
+is closed. The option for `down` and `down-pre` just make this step explicit
+before the device is torn down rather than implicit on the change in
+environment.
+
 Alternatively if you don't want to edit your client configuration, you can add
 the following options to your openvpn command:
 
@@ -84,7 +99,7 @@ OpenVPN, either through the server, or the client, configuration:
 | Option | Examples | Notes |
 |--:|---|---|
 | `DNS` | `0.0.0.0`<br />`::1` | This sets the DNS servers for the link and can take any IPv4 or IPv6 address. |
-| `DOMAIN` | `example.com` | The primary domain for this host. If set multiple times, the last provided is used. Will be the primary search domain for bare hostnames. All requests for this domain as well will be routed to the `DNS` servers provided on this link. |
+| `DOMAIN` or `ADAPTER_DOMAIN_SUFFIX` | `example.com` | The primary domain for this host. If set multiple times, the last provided is used. Will be the primary search domain for bare hostnames. All requests for this domain as well will be routed to the `DNS` servers provided on this link. |
 | `DOMAIN-SEARCH` | `example.com` | Secondary domains which will be used to search for bare hostnames (after any `DOMAIN`, if set) and in the order provided. All requests for this domain will be routed to the `DNS` servers provided on this link. |
 | `DOMAIN-ROUTE` | `example.com` | All requests for these domains will be routed to the `DNS` servers provided on this link. They will *not* be used to search for bare hostnames, only routed. A `DOMAIN-ROUTE` option for `.` (single period) will instruct `systemd-resolved` to route the entire namespace through to the `DNS` servers configured for this connection (unless a more specifc route has been offered by another connection for a selected name/namespace). This is useful if you wish to prevent DNS leakage. |
 | `DNSSEC` | `yes`<br />`no`</br >`allow-downgrade`</br >`default` | Control of DNSSEC should be enabled (`yes`) or disabled (`no`), or `allow-downgrade` to switch off DNSSEC only if the server doesn't support it, for any queries over this link only, or use the system default (`default`). |
