@@ -30,15 +30,16 @@ make
 
 Make sure that you have `systemd-resolved` enabled and running:
 
-```
+```bash
 systemctl enable systemd-resolved.service
 systemctl start systemd-resolved.service
 ```
 
 Then update your `/etc/nsswitch.conf` file to look up DNS via the `resolve`
-service:
+service (you may need to install the NSS library which connectes libnss to
+`systemd-resolved`):
 
-```
+```conf
 # Use /etc/resolv.conf first, then fall back to systemd-resolved
 hosts: files dns resolve myhostname
 # Use systemd-resolved first, then fall back to /etc/resolv.conf
@@ -52,11 +53,20 @@ otherwise the configuration provided by this script will only work on domains
 that cannot be resolved by the currently configured DNS servers (i.e. they must
 fall back after trying the ones set by your LAN's DHCP server).
 
+*Note*: The NSS interface for `systemd-resolved` may be deprecated and has
+already been flagged for deprecation in Ubuntu (see
+[LP#1685045](https://bugs.launchpad.net/ubuntu/+source/systemd/+bug/1685045)
+for details). In this case, you should set your `nameserver` in your
+`/etc/resolv.conf` to `127.0.0.53`, which will interact with the stub resolver
+(introduced in systemd-231) giving you the improved configuration and routing
+support, without having to worry about trying to manage your `/etc/resolv.conf`
+file.
+
 Finally, update your OpenVPN configuration file and set the `up` and `down`
 options to point to the script, and `down-pre` to ensure that the script is run
 before the device is closed:
 
-```
+```conf
 script-security 2
 setenv PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 up /etc/openvpn/scripts/update-systemd-resolved
@@ -82,7 +92,7 @@ environment.
 Alternatively if you don't want to edit your client configuration, you can add
 the following options to your openvpn command:
 
-```
+```bash
 openvpn \
   --script-security 2 \
   --setenv PATH '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin' \
@@ -110,7 +120,7 @@ the interface to be configured.
 
 ### Example
 
-```
+```conf
 push "dhcp-option DNS 10.62.3.2"
 push "dhcp-option DNS 10.62.3.3"
 push "dhcp-option DNS 2001:db8::a3:c15c:b56e:619a"
