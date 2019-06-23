@@ -198,6 +198,10 @@ process_dns() {
   fi
 }
 
+process_dns6() {
+  process_dns $1
+}
+
 looks_like_ipv4() {
   [[ -n "$1" ]] && {
     local dots="${1//[^.]}"
@@ -369,9 +373,14 @@ process_domain() {
   local domain="$1"
   shift
 
-  info "Setting DNS Domain ${domain}"
-  (( dns_domain_count = 1 ))
-  dns_domain=("${domain}" false)
+  info "Adding DNS Domain ${domain}"
+  if [[ $dns_domain_count -eq 1 ]]; then
+    (( dns_search_count += 1 ))
+    dns_search+=("${domain}" false)
+  else
+    (( dns_domain_count = 1 ))
+    dns_domain+=("${domain}" false)
+  fi
 }
 
 process_adapter_domain_suffix() {
@@ -423,9 +432,9 @@ process_dnssec() {
 }
 
 main() {
-  local script_type="$1"
+  local script_type="${1}"
   shift
-  local dev="$1"
+  local dev="${1:-$dev}"
   shift
 
   if [[ -z "$script_type" ]]; then
@@ -443,12 +452,14 @@ main() {
       return 1
     fi
 
-    "$script_type" "$link" "$if_index" "$@"
+    "$script_type" "$link" "$if_index" "$@" || return 1
+    # Flush the DNS cache
+    systemd-resolve --flush-caches
   fi
 }
 
 if [[ "${BASH_SOURCE[0]}" == "$0" ]] || [[ "$AUTOMATED_TESTING" == 1 ]]; then
   set -o nounset
 
-  main "${script_type:-}" "${dev:-}" "$@"
+  main "${script_type:-down}" "$@"
 fi

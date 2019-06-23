@@ -1,5 +1,38 @@
 # Changelog
 
+## 1.3.0 (2019.05.19)
+
+### NOTES
+
+A number of pull-requests and updates added, fixing some bugs and adding new
+features.
+
+### IMPROVEMENTS
+
+- Added support for DNS6 option which can take only IPv6 addresses
+  (@thecodingrobot)
+- Based on some feedback by (@tbaumann), alter the handling of script_type and
+  dev within the body in the main() function to allow it to work more
+  effectively between the environment and command-line parameters.
+- The DNS caches are now flushed when the script as made the configuration
+  changes for the link (@Edu4rdSHL)
+- Change the handling of DOMAIN to support multiple options, with a change in the
+  way the values are processed and added to systemd-resolved (@adq)
+- Updated the documentation in a number of areas, including a new section
+  specifically on DNS Leakage, links to the DBus commands, NetworkManager and
+  DNSSEC issues, and spelling corrections, etc. (Thanks to @bohlstry and
+  @dannyk81 for the help with a script for NetworkManager)
+- Now recommended using the `up-restart` option in the configuration files to
+  ensure that `update-systemd-resolved` is re-run when the connection only
+  partially restarts (i.e connection restarts, but not the TUN/TAP device).
+
+### BACKWARDS INCOMPATIBILITIES
+
+- The DOMAIN option now supports multiple calls, and rather than the last
+  provided version being the primary domain for the link, the first value is the
+  primary domain, and all subsequent calls are added as the equivalent of
+  DOMAIN-SEARCH.
+
 ## 1.2.7 (2017.11.12)
 
 ### NOTES
